@@ -83,14 +83,29 @@ public class ContaService {
      * @param valor         valor a ser transferido
      * @throws IllegalArgumentException se alguma conta não for encontrada ou valor inválido
      */
-    public void transferir(int numeroOrigem, int numeroDestino, double valor) {
+    public String transferir(int numeroOrigem, int numeroDestino, double valor) {
         if (numeroOrigem == numeroDestino) {
             throw new IllegalArgumentException("Conta de origem e destino não podem ser iguais.");
         }
+        if (valor <= 0) {
+            throw new IllegalArgumentException("O valor da transferência deve ser maior que zero.");
+        }
+
         var origem = buscarContaObrigatoria(numeroOrigem);
         var destino = buscarContaObrigatoria(numeroDestino);
+
         origem.debitar(valor);
         destino.creditar(valor);
+
+        return """
+               ========================================
+                     COMPROVANTE DE TRANSFERÊNCIA
+               ========================================
+               Origem:  %d
+               Destino: %d
+               Valor:   R$ %.2f
+               ========================================\
+               """.formatted(numeroOrigem, numeroDestino, valor);
     }
 
     /**

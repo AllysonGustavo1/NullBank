@@ -96,8 +96,8 @@ public class NullBankConsole {
         var origem = lerInteiro("Informe o número da conta de origem: ");
         var destino = lerInteiro("Informe o número da conta de destino: ");
         var valor = lerDouble("Informe o valor da transferência: ");
-        contaService.transferir(origem, destino, valor);
-        System.out.println("Transferência de R$ %.2f realizada com sucesso!".formatted(valor));
+        String comprovante = contaService.transferir(origem, destino, valor);
+        System.out.println("\n" + comprovante);
     }
 
     private int lerInteiro(String mensagem) {
