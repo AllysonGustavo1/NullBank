@@ -10,9 +10,41 @@ Projeto da disciplina **DIM0517 - Gerência de Configuração e Mudanças**.
 
 ## Linguagem e Stack de Desenvolvimento
 
-- Linguagem: Java
-- Framework: Spring
+- Linguagem: Java 25
+- Build: Maven
+- Interface: Console
 
-## Configuração do Projeto
+## Estrutura do Projeto
 
-EM BREVE
+```
+src/main/java/com/nullbank/
+├── App.java              # Ponto de entrada da aplicação
+├── model/
+│   └── Conta.java        # Entidade conta bancária
+├── service/
+│   └── ContaService.java # Lógica de negócio
+└── ui/
+    └── NullBankConsole.java # Interface console
+```
+
+## Como Executar
+
+```bash
+# Compilar o projeto
+mvn clean compile
+
+# Executar
+mvn exec:java -Dexec.mainClass="com.nullbank.App"
+
+# Ou gerar o JAR e executar
+mvn clean package
+java -jar target/nullbank-1.0-SNAPSHOT.jar
+```
+
+## Funcionalidades
+
+- Cadastrar Conta
+- Consultar Saldo
+- Crédito
+- Débito
+- Transferência
