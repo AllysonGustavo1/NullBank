@@ -60,7 +60,13 @@ public class NullBankConsole {
                 System.out.println("Erro: " + e.getMessage());
             }
 
-            System.out.println();
+            if (opcao != 0) {
+                aguardarEnter();
+                
+                if (opcao < 1 || opcao > 5) {
+                    System.out.print("\n".repeat(20));
+                }
+            }
         }
 
         scanner.close();
@@ -107,7 +113,9 @@ public class NullBankConsole {
             scanner.next();
             System.out.print(mensagem);
         }
-        return scanner.nextInt();
+        int valor = scanner.nextInt();  //limpeza de buffer
+        scanner.nextLine();
+        return valor;
     }
 
     private double lerDouble(String mensagem) {
@@ -117,6 +125,13 @@ public class NullBankConsole {
             scanner.next();
             System.out.print(mensagem);
         }
-        return scanner.nextDouble();
+        double valor = scanner.nextDouble();  //limpeza de buffer
+        scanner.nextLine();
+        return valor;
+    }
+
+    private void aguardarEnter() {
+        System.out.println("\nPressione ENTER para continuar...");
+        scanner.nextLine();
     }
 }
