@@ -73,11 +73,33 @@ public class NullBankConsole {
     }
 
     private void cadastrarConta() {
-        var numero = lerInteiro("Informe o número da conta: ");
-        contaService.cadastrarConta(numero);
-        System.out.println("Conta %d cadastrada com sucesso!".formatted(numero));
-    }
+        int tipo = -1;
 
+        while (tipo != 0 && tipo != 1 && tipo != 2) {
+            System.out.println("\n--- TIPO DE CONTA ---");
+            System.out.println("1 - Simples");
+            System.out.println("2 - Bônus");
+            System.out.println("0 - Voltar ao menu principal");
+            tipo = lerInteiro("Escolha o tipo desejado: ");
+
+            if (tipo == 0) {
+                System.out.println("Operação de cadastro cancelada. Voltando ao menu...");
+                return; // O return interrompe o método imediatamente e volta para o menu inicial
+            } else if (tipo != 1 && tipo != 2) {
+                System.out.println("Erro: Opção inválida. Por favor, digite 1, 2 ou 0 para cancelar.");
+            }
+        }
+
+        var numero = lerInteiro("Informe o número da conta: ");
+
+        if (tipo == 1) {
+            contaService.cadastrarConta(numero);
+            System.out.println("Conta Simples %d cadastrada com sucesso!".formatted(numero));
+        } else if (tipo == 2) {
+            contaService.cadastrarContaBonus(numero);
+            System.out.println("Conta Bônus %d cadastrada com 10 pontos iniciais!".formatted(numero));
+        }
+    }
     private void consultarSaldo() {
         var numero = lerInteiro("Informe o número da conta: ");
         var saldo = contaService.consultarSaldo(numero);
