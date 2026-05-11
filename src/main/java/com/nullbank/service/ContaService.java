@@ -2,6 +2,7 @@ package com.nullbank.service;
 
 import com.nullbank.model.Conta;
 import com.nullbank.model.ContaBonus;
+import com.nullbank.model.ContaPoupanca;
 
 import java.util.Collections;
 import java.util.LinkedHashMap;
@@ -46,6 +47,15 @@ public class ContaService {
             throw new IllegalArgumentException("Já existe uma conta com o número %d.".formatted(numero));
         }
         var conta = new ContaBonus(numero);
+        contas.put(numero, conta);
+        return conta;
+    }
+
+    public Conta cadastrarContaPoupanca(int numero) {
+        if (contas.containsKey(numero)) {
+            throw new IllegalArgumentException("Já existe uma conta com o número %d.".formatted(numero));
+        }
+        var conta = new ContaPoupanca(numero);
         contas.put(numero, conta);
         return conta;
     }
@@ -152,5 +162,18 @@ public class ContaService {
         return buscarConta(numero)
                 .orElseThrow(() -> new IllegalArgumentException(
                         "Conta com número %d não encontrada.".formatted(numero)));
+    }
+
+    public void renderJurosGlobal(double taxa) {
+        boolean houveRendimento = false;
+        for (Conta conta : contas.values()) {
+            if (conta instanceof ContaPoupanca cp) {
+                cp.renderJuros(taxa);
+                houveRendimento = true;
+            }
+        }
+        if (!houveRendimento) {
+            throw new IllegalStateException("Não existem contas poupança cadastradas para render juros.");
+        }
     }
 }
