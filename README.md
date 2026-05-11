@@ -35,6 +35,8 @@ mvn clean compile
 
 # Executar
 mvn exec:java -Dexec.mainClass="com.nullbank.App"
+ou
+mvn exec:java "-Dexec.mainClass=com.nullbank.App"
 
 # Ou gerar o JAR e executar
 mvn clean package
