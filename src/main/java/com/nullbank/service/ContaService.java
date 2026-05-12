@@ -69,44 +69,35 @@ public class ContaService {
      * @throws IllegalArgumentException se a conta não for encontrada ou valor inválido
      */
     public void creditar(int numero, double valor) {
-        if (valor <= 0) {
-            throw new IllegalArgumentException("O valor de crédito deve ser maior que zero.");
-        }
-      Conta conta = buscarContaObrigatoria(numero);
-      conta.creditar(valor);
+    Conta conta = buscarContaObrigatoria(numero);
+    conta.creditar(valor);
 
-      if (conta instanceof ContaBonus cb) {
-          int pontosGanhos = (int) (valor / 100);
-          cb.adicionarPontos(pontosGanhos);
+    if (conta instanceof ContaBonus cb) {
+        int pontosGanhos = (int) (valor / 100);
+        cb.adicionarPontos(pontosGanhos);
     }
 }
 
     /**
      * Realiza operação de débito (subtrai valor do saldo).
-     * Não permite saldo negativo.
+     * A conta pode ficar com saldo negativo.
      *
      * @param numero número da conta
      * @param valor  valor a ser debitado
      * @throws IllegalArgumentException se a conta não for encontrada ou valor inválido
-     * @throws IllegalStateException se não houver saldo suficiente
      */
     public void debitar(int numero, double valor) {
-        if (valor <= 0) {
-            throw new IllegalArgumentException("O valor de débito deve ser maior que zero.");
-        }
         buscarContaObrigatoria(numero).debitar(valor);
     }
 
     /**
      * Realiza transferência entre duas contas.
      * Debita da conta de origem e credita na conta de destino.
-     * Não permite saldo negativo na conta de origem.
      *
      * @param numeroOrigem  número da conta de origem
      * @param numeroDestino número da conta de destino
      * @param valor         valor a ser transferido
      * @throws IllegalArgumentException se alguma conta não for encontrada ou valor inválido
-     * @throws IllegalStateException se não houver saldo suficiente
      */
     public String transferir(int numeroOrigem, int numeroDestino, double valor) {
         if (numeroOrigem == numeroDestino) {
