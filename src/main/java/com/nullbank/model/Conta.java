@@ -47,7 +47,7 @@ public class Conta {
 
     /**
      * Subtrai um valor do saldo da conta.
-     * A conta pode ficar com saldo negativo conforme regra de negócio.
+     * A conta não pode ficar com saldo negativo, conforme nova regra de negócio.
      *
      * @param valor valor a ser debitado (deve ser positivo)
      * @throws IllegalArgumentException se o valor não for positivo
@@ -56,6 +56,11 @@ public class Conta {
         if (valor <= 0) {
             throw new IllegalArgumentException("O valor de débito deve ser positivo.");
         }
+
+        if (valor > this.saldo) {
+            throw new IllegalStateException("Saldo insuficiente.");
+        }
+
         this.saldo -= valor;
     }
 

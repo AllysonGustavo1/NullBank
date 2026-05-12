@@ -56,7 +56,7 @@ public class NullBankConsole {
                     case 0 -> System.out.println("Encerrando o NullBank. Até logo!");
                     default -> System.out.println("Opção inválida. Tente novamente.");
                 }
-            } catch (IllegalArgumentException e) {
+            } catch (IllegalArgumentException | IllegalStateException e) {
                 System.out.println("Erro: " + e.getMessage());
             }
 
