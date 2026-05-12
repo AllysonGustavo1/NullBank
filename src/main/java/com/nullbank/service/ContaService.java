@@ -64,11 +64,12 @@ public class ContaService {
 
     /**
      * Realiza operação de débito (subtrai valor do saldo).
-     * A conta pode ficar com saldo negativo.
+     * Não permite saldo negativo.
      *
      * @param numero número da conta
      * @param valor  valor a ser debitado
      * @throws IllegalArgumentException se a conta não for encontrada ou valor inválido
+     * @throws IllegalStateException se não houver saldo suficiente
      */
     public void debitar(int numero, double valor) {
         buscarContaObrigatoria(numero).debitar(valor);
@@ -77,11 +78,13 @@ public class ContaService {
     /**
      * Realiza transferência entre duas contas.
      * Debita da conta de origem e credita na conta de destino.
+     * Não permite saldo negativo na conta de origem.
      *
      * @param numeroOrigem  número da conta de origem
      * @param numeroDestino número da conta de destino
      * @param valor         valor a ser transferido
      * @throws IllegalArgumentException se alguma conta não for encontrada ou valor inválido
+     * @throws IllegalStateException se não houver saldo suficiente
      */
     public String transferir(int numeroOrigem, int numeroDestino, double valor) {
         if (numeroOrigem == numeroDestino) {
