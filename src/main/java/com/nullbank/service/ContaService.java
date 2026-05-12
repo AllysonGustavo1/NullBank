@@ -1,6 +1,8 @@
 package com.nullbank.service;
 
 import com.nullbank.model.Conta;
+import com.nullbank.model.ContaBonus;
+import com.nullbank.model.ContaPoupanca;
 
 import java.util.Collections;
 import java.util.LinkedHashMap;
@@ -40,6 +42,24 @@ public class ContaService {
         return conta;
     }
 
+    public Conta cadastrarContaBonus(int numero) {
+        if (contas.containsKey(numero)) {
+            throw new IllegalArgumentException("Já existe uma conta com o número %d.".formatted(numero));
+        }
+        var conta = new ContaBonus(numero);
+        contas.put(numero, conta);
+        return conta;
+    }
+
+    public Conta cadastrarContaPoupanca(int numero) {
+        if (contas.containsKey(numero)) {
+            throw new IllegalArgumentException("Já existe uma conta com o número %d.".formatted(numero));
+        }
+        var conta = new ContaPoupanca(numero);
+        contas.put(numero, conta);
+        return conta;
+    }
+
     /**
      * Consulta o saldo de uma conta pelo número.
      *
@@ -59,8 +79,17 @@ public class ContaService {
      * @throws IllegalArgumentException se a conta não for encontrada ou valor inválido
      */
     public void creditar(int numero, double valor) {
-        buscarContaObrigatoria(numero).creditar(valor);
+        if (valor <= 0) {
+            throw new IllegalArgumentException("O valor de crédito deve ser maior que zero.");
+        }
+      Conta conta = buscarContaObrigatoria(numero);
+      conta.creditar(valor);
+
+      if (conta instanceof ContaBonus cb) {
+          int pontosGanhos = (int) (valor / 100);
+          cb.adicionarPontos(pontosGanhos);
     }
+}
 
     /**
      * Realiza operação de débito (subtrai valor do saldo).
@@ -72,6 +101,9 @@ public class ContaService {
      * @throws IllegalStateException se não houver saldo suficiente
      */
     public void debitar(int numero, double valor) {
+        if (valor <= 0) {
+            throw new IllegalArgumentException("O valor de débito deve ser maior que zero.");
+        }
         buscarContaObrigatoria(numero).debitar(valor);
     }
 
@@ -99,6 +131,11 @@ public class ContaService {
 
         origem.debitar(valor);
         destino.creditar(valor);
+
+        if (destino instanceof ContaBonus cb) {
+            int pontosGanhos = (int) (valor / 200);
+            cb.adicionarPontos(pontosGanhos);
+        }
 
         return """
                ========================================
@@ -134,5 +171,18 @@ public class ContaService {
         return buscarConta(numero)
                 .orElseThrow(() -> new IllegalArgumentException(
                         "Conta com número %d não encontrada.".formatted(numero)));
+    }
+
+    public void renderJurosGlobal(double taxa) {
+        boolean houveRendimento = false;
+        for (Conta conta : contas.values()) {
+            if (conta instanceof ContaPoupanca cp) {
+                cp.renderJuros(taxa);
+                houveRendimento = true;
+            }
+        }
+        if (!houveRendimento) {
+            throw new IllegalStateException("Não existem contas poupança cadastradas para render juros.");
+        }
     }
 }
