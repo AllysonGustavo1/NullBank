@@ -1,6 +1,7 @@
 package com.nullbank.service;
 
 import com.nullbank.model.Conta;
+import com.nullbank.model.ContaBonus;
 
 import java.util.Collections;
 import java.util.LinkedHashMap;
@@ -40,6 +41,15 @@ public class ContaService {
         return conta;
     }
 
+    public Conta cadastrarContaBonus(int numero) {
+        if (contas.containsKey(numero)) {
+            throw new IllegalArgumentException("Já existe uma conta com o número %d.".formatted(numero));
+        }
+        var conta = new ContaBonus(numero);
+        contas.put(numero, conta);
+        return conta;
+    }
+
     /**
      * Consulta o saldo de uma conta pelo número.
      *
@@ -62,8 +72,14 @@ public class ContaService {
         if (valor <= 0) {
             throw new IllegalArgumentException("O valor de crédito deve ser maior que zero.");
         }
-        buscarContaObrigatoria(numero).creditar(valor);
+      Conta conta = buscarContaObrigatoria(numero);
+      conta.creditar(valor);
+
+      if (conta instanceof ContaBonus cb) {
+          int pontosGanhos = (int) (valor / 100);
+          cb.adicionarPontos(pontosGanhos);
     }
+}
 
     /**
      * Realiza operação de débito (subtrai valor do saldo).
@@ -105,6 +121,11 @@ public class ContaService {
 
         origem.debitar(valor);
         destino.creditar(valor);
+
+        if (destino instanceof ContaBonus cb) {
+            int pontosGanhos = (int) (valor / 200);
+            cb.adicionarPontos(pontosGanhos);
+        }
 
         return """
                ========================================
