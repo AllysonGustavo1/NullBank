@@ -24,6 +24,7 @@ public class NullBankConsole {
               3 - Crédito
               4 - Débito
               5 - Transferência
+              6 - Render Juros
               0 - Sair
             ========================================\
             """;
@@ -53,6 +54,7 @@ public class NullBankConsole {
                     case 3 -> creditar();
                     case 4 -> debitar();
                     case 5 -> transferir();
+                    case 6 -> renderJuros();
                     case 0 -> System.out.println("Encerrando o NullBank. Até logo!");
                     default -> System.out.println("Opção inválida. Tente novamente.");
                 }
@@ -75,10 +77,11 @@ public class NullBankConsole {
     private void cadastrarConta() {
         int tipo = -1;
 
-        while (tipo != 0 && tipo != 1 && tipo != 2) {
+        while (tipo != 0 && tipo != 1 && tipo != 2 && tipo != 3) {
             System.out.println("\n--- TIPO DE CONTA ---");
             System.out.println("1 - Simples");
             System.out.println("2 - Bônus");
+            System.out.println("3 - Poupança");
             System.out.println("0 - Voltar ao menu principal");
             tipo = lerInteiro("Escolha o tipo desejado: ");
 
@@ -98,6 +101,10 @@ public class NullBankConsole {
         } else if (tipo == 2) {
             contaService.cadastrarContaBonus(numero);
             System.out.println("Conta Bônus %d cadastrada com 10 pontos iniciais!".formatted(numero));
+        }
+        else if (tipo == 3) {
+            contaService.cadastrarContaPoupanca(numero);
+            System.out.println("Conta Poupança %d cadastrada com sucesso!".formatted(numero));
         }
     }
     private void consultarSaldo() {
@@ -126,6 +133,12 @@ public class NullBankConsole {
         var valor = lerDouble("Informe o valor da transferência: ");
         String comprovante = contaService.transferir(origem, destino, valor);
         System.out.println("\n" + comprovante);
+    }
+
+    private void renderJuros() {
+        var taxa = lerDouble("Informe a taxa de juros (%): ");
+        contaService.renderJurosGlobal(taxa);
+        System.out.println("Juros de %.2f%% aplicados a todas as contas poupança!".formatted(taxa));
     }
 
     private int lerInteiro(String mensagem) {
