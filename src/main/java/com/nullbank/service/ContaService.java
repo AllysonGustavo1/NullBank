@@ -59,6 +59,9 @@ public class ContaService {
      * @throws IllegalArgumentException se a conta não for encontrada ou valor inválido
      */
     public void creditar(int numero, double valor) {
+        if (valor <= 0) {
+            throw new IllegalArgumentException("O valor de crédito deve ser maior que zero.");
+        }
         buscarContaObrigatoria(numero).creditar(valor);
     }
 
@@ -72,6 +75,9 @@ public class ContaService {
      * @throws IllegalStateException se não houver saldo suficiente
      */
     public void debitar(int numero, double valor) {
+        if (valor <= 0) {
+            throw new IllegalArgumentException("O valor de débito deve ser maior que zero.");
+        }
         buscarContaObrigatoria(numero).debitar(valor);
     }
 
