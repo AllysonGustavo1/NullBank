@@ -88,16 +88,17 @@ public class NullBankConsole {
             if (tipo == 0) {
                 System.out.println("Operação de cadastro cancelada. Voltando ao menu...");
                 return; // O return interrompe o método imediatamente e volta para o menu inicial
-            } else if (tipo != 1 && tipo != 2) {
-                System.out.println("Erro: Opção inválida. Por favor, digite 1, 2 ou 0 para cancelar.");
+            } else if (tipo != 1 && tipo != 2 && tipo != 3) {
+                System.out.println("Erro: Opção inválida. Por favor, digite 1, 2, 3 ou 0 para cancelar.");
             }
         }
 
         var numero = lerInteiro("Informe o número da conta: ");
 
         if (tipo == 1) {
-            contaService.cadastrarConta(numero);
-            System.out.println("Conta Simples %d cadastrada com sucesso!".formatted(numero));
+            var saldoInicial = lerDouble("Informe o saldo inicial da Conta Simples: ");
+            contaService.cadastrarConta(numero, saldoInicial); //hotfix
+            System.out.println("Conta Simples %d cadastrada com sucesso com saldo inicial de R$ %.2f!".formatted(numero, saldoInicial));
         } else if (tipo == 2) {
             contaService.cadastrarContaBonus(numero);
             System.out.println("Conta Bônus %d cadastrada com 10 pontos iniciais!".formatted(numero));
