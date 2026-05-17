@@ -133,7 +133,7 @@ public class ContaService {
         destino.creditar(valor);
 
         if (destino instanceof ContaBonus cb) {
-            int pontosGanhos = (int) (valor / 200);
+            int pontosGanhos = (int) (valor / 150);
             cb.adicionarPontos(pontosGanhos);
         }
 
