@@ -51,11 +51,17 @@ public class ContaService {
         return conta;
     }
 
-    public Conta cadastrarContaPoupanca(int numero) {
+    public Conta cadastrarContaPoupanca(int numero, double saldoInicial) {
         if (contas.containsKey(numero)) {
             throw new IllegalArgumentException("Já existe uma conta com o número %d.".formatted(numero));
         }
+        if (saldoInicial < 0) {
+            throw new IllegalArgumentException("O saldo inicial não pode ser negativo.");
+        }
         var conta = new ContaPoupanca(numero);
+        if (saldoInicial > 0) {
+            conta.creditar(saldoInicial);
+        }
         contas.put(numero, conta);
         return conta;
     }

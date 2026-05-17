@@ -103,8 +103,10 @@ public class NullBankConsole {
             System.out.println("Conta Bônus %d cadastrada com 10 pontos iniciais!".formatted(numero));
         }
         else if (tipo == 3) {
-            contaService.cadastrarContaPoupanca(numero);
-            System.out.println("Conta Poupança %d cadastrada com sucesso!".formatted(numero));
+            var saldoInicial = lerDouble("Informe o saldo inicial da Conta Poupança: ");
+            contaService.cadastrarContaPoupanca(numero, saldoInicial);
+            System.out.println("Conta Poupança %d cadastrada com sucesso com saldo inicial de R$ %.2f!"
+                    .formatted(numero, saldoInicial));
         }
     }
     private void consultarSaldo() {
