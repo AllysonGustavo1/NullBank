@@ -52,13 +52,18 @@ public class Conta {
      * @param valor valor a ser debitado (deve ser positivo)
      * @throws IllegalArgumentException se o valor não for positivo
      */
+
+    protected double getLimiteSaldoNegativo() {
+        return -1000.0;
+    }
     public void debitar(double valor) {
         if (valor <= 0) {
             throw new IllegalArgumentException("O valor de débito deve ser positivo.");
         }
 
-        if (valor > this.saldo) {
-            throw new IllegalStateException("Saldo insuficiente.");
+        if (this.saldo - valor < getLimiteSaldoNegativo()) {
+            throw new IllegalArgumentException("Saldo insuficiente. O limite máximo de saldo negativo é de R$ %.2f."
+                    .formatted(Math.abs(getLimiteSaldoNegativo())));
         }
 
         this.saldo -= valor;
