@@ -20,11 +20,12 @@ public class NullBankConsole {
                         NULLBANK - Menu
             ========================================
               1 - Cadastrar Conta
-              2 - Consultar Saldo
-              3 - Crédito
-              4 - Débito
-              5 - Transferência
-              6 - Render Juros
+              2 - Consultar Conta
+              3 - Consultar Saldo
+              4 - Crédito
+              5 - Débito
+              6 - Transferência
+              7 - Render Juros
               0 - Sair
             ========================================\
             """;
@@ -50,11 +51,12 @@ public class NullBankConsole {
             try {
                 switch (opcao) {
                     case 1 -> cadastrarConta();
-                    case 2 -> consultarSaldo();
-                    case 3 -> creditar();
-                    case 4 -> debitar();
-                    case 5 -> transferir();
-                    case 6 -> renderJuros();
+                    case 2 -> consultarConta();
+                    case 3 -> consultarSaldo();
+                    case 4 -> creditar();
+                    case 5 -> debitar();
+                    case 6 -> transferir();
+                    case 7 -> renderJuros();
                     case 0 -> System.out.println("Encerrando o NullBank. Até logo!");
                     default -> System.out.println("Opção inválida. Tente novamente.");
                 }
@@ -166,6 +168,12 @@ public class NullBankConsole {
         double valor = scanner.nextDouble();  //limpeza de buffer
         scanner.nextLine();
         return valor;
+    }
+
+    private void consultarConta() {
+        var numero = lerInteiro("Informe o número da conta: ");
+        var conta = contaService.consultarConta(numero);
+        System.out.println(conta);
     }
 
     private void aguardarEnter() {

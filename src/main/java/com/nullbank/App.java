@@ -1,16 +1,12 @@
 package com.nullbank;
 
-import com.nullbank.service.ContaService;
-import com.nullbank.ui.NullBankConsole;
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
 
-/**
- * Ponto de entrada da aplicação NullBank.
- */
+@SpringBootApplication
 public class App {
 
     public static void main(String[] args) {
-        ContaService contaService = new ContaService();
-        NullBankConsole console = new NullBankConsole(contaService);
-        console.iniciar();
+        SpringApplication.run(App.class, args);
     }
 }
