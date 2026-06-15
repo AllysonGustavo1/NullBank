@@ -19,6 +19,11 @@ public class ContaPoupanca extends Conta {
     }
 
     @Override
+    protected double getLimiteSaldoNegativo() {
+        return 0.0; // Conta Poupança não pode ter saldo abaixo de zero
+    }
+    
+    @Override
     public String toString() {
         return "Conta Poupança [numero=%d, saldo=%.2f]".formatted(getNumero(), getSaldo());
     }
