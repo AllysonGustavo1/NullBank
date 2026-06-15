@@ -3,6 +3,7 @@ package com.nullbank.service;
 import com.nullbank.model.Conta;
 import com.nullbank.model.ContaBonus;
 import com.nullbank.model.ContaPoupanca;
+import org.springframework.stereotype.Service;
 
 import java.util.Collections;
 import java.util.LinkedHashMap;
@@ -22,6 +23,7 @@ import java.util.Optional;
  * garantindo busca O(1) por número e preservando a ordem de inserção.
  * </p>
  */
+@Service
 public class ContaService {
 
     private final Map<Integer, Conta> contas = new LinkedHashMap<>();
@@ -61,11 +63,17 @@ public class ContaService {
         return conta;
     }
 
-    public Conta cadastrarContaPoupanca(int numero) {
+    public Conta cadastrarContaPoupanca(int numero, double saldoInicial) {
         if (contas.containsKey(numero)) {
             throw new IllegalArgumentException("Já existe uma conta com o número %d.".formatted(numero));
         }
+        if (saldoInicial < 0) {
+            throw new IllegalArgumentException("O saldo inicial não pode ser negativo.");
+        }
         var conta = new ContaPoupanca(numero);
+        if (saldoInicial > 0) {
+            conta.creditar(saldoInicial);
+        }
         contas.put(numero, conta);
         return conta;
     }
@@ -194,5 +202,9 @@ public class ContaService {
         if (!houveRendimento) {
             throw new IllegalStateException("Não existem contas poupança cadastradas para render juros.");
         }
+    }
+
+    public Conta consultarConta(int numero) {
+        return buscarContaObrigatoria(numero);
     }
 }
