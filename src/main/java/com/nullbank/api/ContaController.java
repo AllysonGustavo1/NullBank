@@ -23,7 +23,7 @@ public class ContaController {
     @PostMapping
     public ResponseEntity<ContaResponse> cadastrarConta(@RequestBody ContaRequest request) {
         Conta conta = switch (request.tipo().toLowerCase()) {
-            case "simples" -> contaService.cadastrarConta(request.numero());
+            case "simples" -> contaService.cadastrarConta(request.numero(), request.saldoInicial());
             case "bonus", "bônus" -> contaService.cadastrarContaBonus(request.numero());
             case "poupanca", "poupança" -> contaService.cadastrarContaPoupanca(request.numero(), request.saldoInicial());
             default -> throw new IllegalArgumentException("Tipo de conta inválido.");
