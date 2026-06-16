@@ -1,0 +1,44 @@
+name: NullBank CI
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    
+    permissions:
+      contents: write 
+
+    steps:
+      - name: 1. Checkout do Repositório
+        uses: actions/checkout@v4
+
+      - name: 2. Setup do Ambiente Java
+        uses: actions/setup-java@v4
+        with:
+          java-version: '25' 
+          distribution: 'temurin'
+          cache: maven
+
+      - name: 3. Resolver Dependências e Buildar o Sistema
+        run: mvn clean compile
+
+      - name: 4. Executar Testes Unitários
+        run: mvn test
+
+      - name: 5. Estabelecer Tag de Build
+        if: success() && github.event_name == 'push'
+        run: |
+          git config user.name "GitHub Actions Bot"
+          git config user.email "actions@github.com"
+          
+          TAG_NAME="build-${{ github.run_number }}"
+          
+          git tag -a $TAG_NAME -m "CI Build Automatizado: Execução ${{ github.run_number }}"
+          git push origin $TAG_NAME
