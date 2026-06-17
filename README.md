@@ -10,7 +10,7 @@ Projeto da disciplina **DIM0517 - Gerência de Configuração e Mudanças**.
 
 ## Linguagem e Stack de Desenvolvimento
 
-- Linguagem: Java 25
+- Linguagem: Java 21
 - Build: Maven
 - Interface: Console
 
