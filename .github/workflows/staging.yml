@@ -1,0 +1,154 @@
+name: NullBank Staging CI/CD
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+  DEVELOPMENT_BRANCH: main
+  STAGING_BRANCH: staging
+  BUGFIX_PREFIX: bugfix
+  DEFAULT_RC_MAJOR: 1
+  DEFAULT_RC_MINOR: 3
+
+on:
+  pull_request:
+    types:
+      - closed
+    branches:
+      - staging
+
+  workflow_dispatch:
+
+jobs:
+  staging-pipeline:
+    if: github.event_name == 'workflow_dispatch' || github.event.pull_request.merged == true
+
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write
+      actions: read
+
+    steps:
+      - name: 1. Checkout do Repositório
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: 2. Setup do Ambiente Java
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: maven
+
+      - name: 3. Resolver Dependências do Projeto
+        run: mvn -B dependency:resolve
+
+      - name: 4. Buildar o Sistema
+        run: mvn -B clean compile
+
+      - name: 5. Executar Quality Gate com PMD
+        run: mvn -B pmd:pmd
+
+      - name: 6. Executar Testes Unitários
+        run: mvn -B test
+
+      - name: 7. Gerar Pacote da Aplicação
+        run: mvn -B package -DskipTests
+
+      - name: 8. Definir Tag RC
+        id: rc_tag
+        shell: bash
+        run: |
+          git fetch --tags
+
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            SOURCE_BRANCH="${DEVELOPMENT_BRANCH}"
+          else
+            SOURCE_BRANCH="${{ github.event.pull_request.head.ref }}"
+          fi
+
+          echo "Branch de origem: $SOURCE_BRANCH"
+
+          get_latest_rc_tag() {
+            git tag -l "rc-[0-9]*.[0-9]*" | sort -V | tail -n 1
+          }
+
+          if [ "$SOURCE_BRANCH" = "$DEVELOPMENT_BRANCH" ]; then
+            LATEST_TAG=$(get_latest_rc_tag)
+
+            if [ -z "$LATEST_TAG" ]; then
+              TAG_NAME="rc-${DEFAULT_RC_MAJOR}.${DEFAULT_RC_MINOR}"
+            else
+              VERSION=${LATEST_TAG#rc-}
+              MAJOR=$(echo "$VERSION" | cut -d "." -f 1)
+              MINOR=$(echo "$VERSION" | cut -d "." -f 2)
+              NEXT_MINOR=$((MINOR + 1))
+              TAG_NAME="rc-${MAJOR}.${NEXT_MINOR}"
+            fi
+
+          elif [[ "$SOURCE_BRANCH" == ${BUGFIX_PREFIX}* ]]; then
+            LATEST_TAG=$(get_latest_rc_tag)
+
+            if [ -z "$LATEST_TAG" ]; then
+              echo "Erro: não existe tag rc anterior para gerar bugfix de estabilização."
+              exit 1
+            fi
+
+            VERSION=${LATEST_TAG#rc-}
+            MAJOR=$(echo "$VERSION" | cut -d "." -f 1)
+            MINOR=$(echo "$VERSION" | cut -d "." -f 2)
+            PATCH=$(echo "$VERSION" | cut -d "." -f 3)
+
+            if [ -z "$PATCH" ] || [ "$PATCH" = "$VERSION" ]; then
+              PATCH=0
+            fi
+
+            NEXT_PATCH=$((PATCH + 1))
+            TAG_NAME="rc-${MAJOR}.${MINOR}.${NEXT_PATCH}"
+
+          else
+            echo "Erro: branch de origem inválida para geração de RC."
+            echo "Esperado: ${DEVELOPMENT_BRANCH} ou ${BUGFIX_PREFIX}*"
+            echo "Recebido: $SOURCE_BRANCH"
+            exit 1
+          fi
+
+          echo "Tag definida: $TAG_NAME"
+          echo "tag_name=$TAG_NAME" >> "$GITHUB_OUTPUT"
+
+      - name: 9. Criar Pacote ZIP da Versão
+        shell: bash
+        run: |
+          TAG_NAME="${{ steps.rc_tag.outputs.tag_name }}"
+
+          mkdir -p release-package
+
+          find target -maxdepth 1 -name "*.jar" ! -name "*.original" -exec cp {} release-package/ \;
+
+          cp pom.xml release-package/
+          cp -r src release-package/
+
+          if [ -f README.md ]; then
+            cp README.md release-package/
+          fi
+
+          cd release-package
+          zip -r "../${TAG_NAME}.zip" .
+          cd ..
+
+      - name: 10. Publicar Artifact do Workflow
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ steps.rc_tag.outputs.tag_name }}
+          path: ${{ steps.rc_tag.outputs.tag_name }}.zip
+
+      - name: 11. Estabelecer Tag RC
+        shell: bash
+        run: |
+          TAG_NAME="${{ steps.rc_tag.outputs.tag_name }}"
+
+          git config user.name "GitHub Actions Bot"
+          git config user.email "actions@github.com"
+
+          git tag -a "$TAG_NAME" -m "Release Candidate gerada automaticamente: $TAG_NAME"
+          git push origin "$TAG_NAME"
