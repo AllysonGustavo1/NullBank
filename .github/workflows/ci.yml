@@ -1,47 +1,120 @@
-name: NullBank CI
-
-env:
-  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+name: NullBank CI/CD
 
 on:
-  push:
-    branches:
-      - main
   pull_request:
+    types:
+      - closed
     branches:
       - main
+      - producao
+      - production
+
+env:
+  JAVA_VERSION: '21'
+  IMAGE_NAME: nullbank
 
 jobs:
-  build-and-test:
+  release:
+    if: >
+      github.event.pull_request.merged == true &&
+      (
+        github.event.pull_request.head.ref == 'staging' ||
+        startsWith(github.event.pull_request.head.ref, 'hotfix')
+      )
     runs-on: ubuntu-latest
-    
+
     permissions:
-      contents: write 
+      contents: write
 
     steps:
-      - name: 1. Checkout do Repositório
+      - name: Checkout do repositorio
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
-      - name: 2. Setup do Ambiente Java
+      - name: Setup do Java
         uses: actions/setup-java@v4
         with:
-          java-version: '25' 
-          distribution: 'temurin'
+          java-version: ${{ env.JAVA_VERSION }}
+          distribution: temurin
           cache: maven
 
-      - name: 3. Resolver Dependências e Buildar o Sistema
+      - name: Resolver dependencias
+        run: mvn dependency:resolve
+
+      - name: Buildar o sistema
         run: mvn clean compile
 
-      - name: 4. Executar Testes Unitários
+      - name: Quality - analise estatica com SpotBugs
+        run: mvn spotbugs:spotbugs
+
+      - name: Executar testes unitarios
         run: mvn test
 
-      - name: 5. Estabelecer Tag de Build
-        if: success() && github.event_name == 'push'
+      - name: Gerar pacote JAR
+        run: mvn package -DskipTests
+
+      - name: Gerar pacote ZIP do sistema
+        run: |
+          mkdir -p dist
+          cp target/*.jar dist/
+          cp Dockerfile README.md pom.xml dist/
+          zip -r nullbank-${{ github.run_number }}.zip dist
+
+      - name: Disponibilizar pacote como artefato
+        uses: actions/upload-artifact@v4
+        with:
+          name: nullbank-package
+          path: nullbank-${{ github.run_number }}.zip
+
+      - name: Calcular nova tag rel
+        id: version
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch --tags --force
+
+          source_branch="${{ github.event.pull_request.head.ref }}"
+          latest_tag="$(git tag -l 'rel-*' | sed 's/^rel-//' | sort -V | tail -n 1)"
+
+          if [[ "$source_branch" == hotfix* ]]; then
+            if [[ -z "$latest_tag" ]]; then
+              new_tag="rel-1.0.1"
+            else
+              IFS='.' read -r major minor patch <<< "$latest_tag"
+              patch="${patch:-0}"
+              new_tag="rel-${major}.${minor}.$((patch + 1))"
+            fi
+          else
+            if [[ -z "$latest_tag" ]]; then
+              new_tag="rel-1.0"
+            else
+              IFS='.' read -r major minor patch <<< "$latest_tag"
+              new_tag="rel-${major}.$((minor + 1))"
+            fi
+          fi
+
+          echo "tag=$new_tag" >> "$GITHUB_OUTPUT"
+          echo "Nova tag: $new_tag"
+
+      - name: Criar tag de release
         run: |
           git config user.name "GitHub Actions Bot"
           git config user.email "actions@github.com"
-          
-          TAG_NAME="build-${{ github.run_number }}"
-          
-          git tag -a $TAG_NAME -m "CI Build Automatizado: Execução ${{ github.run_number }}"
-          git push origin $TAG_NAME
+          git tag -a "${{ steps.version.outputs.tag }}" -m "Release ${{ steps.version.outputs.tag }}"
+          git push origin "${{ steps.version.outputs.tag }}"
+
+      - name: Login no Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Gerar e publicar imagem Docker
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          tags: |
+            ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:${{ steps.version.outputs.tag }}
+            ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:latest
