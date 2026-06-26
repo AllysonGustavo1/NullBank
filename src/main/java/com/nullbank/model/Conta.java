@@ -15,7 +15,7 @@ public class Conta {
     private double saldo;
 
     /**
-     * Cria uma nova conta com saldo inicial zero.
+     * Cria uma conta com saldo inicial zero.
      *
      * @param numero identificador único da conta
      */
