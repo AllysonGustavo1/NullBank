@@ -1,0 +1,53 @@
+#!/bin/bash
+
+COMMIT_MSG_FILE=$1
+COMMIT_MSG=$(cat "$COMMIT_MSG_FILE")
+
+# ==========================================
+# CONFIGURAÇÃO DO REPOSITÓRIO (AJUSTE AQUI)
+# ==========================================
+GITHUB_OWNER="AllysonGustavo1"
+GITHUB_REPO="nullbank"
+
+# ==========================================
+# VERIFICAÇÃO 1: FORMATO DA MENSAGEM
+# ==========================================
+# Regex para garantir o padrão: #NUMERO - Mensagem qualquer
+REGEX="^#([0-9]+) - .+$"
+
+if [[ ! $COMMIT_MSG =~ $REGEX ]]; then
+  echo "================================================================"
+  echo "❌ ERRO: O commit foi rejeitado!"
+  echo "Sua mensagem não segue o padrão exigido pelo projeto."
+  echo "Formato correto: #NUM_ISSUE - MENSAGEM"
+  echo "Exemplo válido : #33 - Correção da mensagem da tela principal"
+  echo "================================================================"
+  exit 1
+fi
+
+# Extrai o número da issue usando o grupo de captura da Regex do Bash
+ISSUE_NUM="${BASH_REMATCH[1]}"
+
+# ==========================================
+# VERIFICAÇÃO 2: EXISTÊNCIA DA ISSUE
+# ==========================================
+echo "🔍 Verificando se a issue #$ISSUE_NUM existe no GitHub..."
+
+# Faz uma requisição à API do GitHub e captura apenas o código de status HTTP (ex: 200, 404)
+HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" https://api.github.com/repos/$GITHUB_OWNER/$GITHUB_REPO/issues/$ISSUE_NUM)
+
+if [ "$HTTP_STATUS" -eq 200 ]; then
+  echo "✅ Validação concluída: Issue #$ISSUE_NUM encontrada com sucesso!"
+  exit 0
+elif [ "$HTTP_STATUS" -eq 404 ]; then
+  echo "================================================================"
+  echo "❌ ERRO: O commit foi rejeitado!"
+  echo "A issue #$ISSUE_NUM não existe no repositório $GITHUB_OWNER/$GITHUB_REPO."
+  echo "Por favor, verifique o número da tarefa."
+  echo "================================================================"
+  exit 1
+else
+  echo "⚠️ Aviso: Não foi possível verificar a issue na API do GitHub (Status: $HTTP_STATUS)."
+  echo "Para evitar bloqueios indevidos por falha de rede, o commit será permitido."
+  exit 0
+fi
