@@ -1,0 +1,67 @@
+name: Validação de Commits (PR)
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+jobs:
+  verificar-commits:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Inspecionar Regras de GCM dos Commits
+        env:
+          # Usa o token nativo do GitHub para não sofrer bloqueio na API
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          echo "Iniciando verificação remota dos commits do PR #${{ github.event.pull_request.number }}..."
+          
+          # Consulta a API do GitHub para pegar a primeira linha de todas as mensagens de commit do PR
+          COMMITS=$(curl -s -H "Authorization: Bearer $GH_TOKEN" \
+            "https://api.github.com/repos/${{ github.repository }}/pulls/${{ github.event.pull_request.number }}/commits" | jq -r '.[].commit.message | split("\n")[0]')
+          
+          REGEX="^#([0-9]+) (-|–|—) .+$"
+          HAS_ERROR=0
+          
+          while IFS= read -r COMMIT_MSG; do
+            if [[ -z "$COMMIT_MSG" ]]; then continue; fi
+            
+            echo "----------------------------------------"
+            echo "Analisando: '$COMMIT_MSG'"
+            
+            if [[ "$COMMIT_MSG" =~ ^Merge[[:space:]] ]]; then
+              echo "ℹ️ Commit de merge detectado. Ignorando validação."
+              continue
+            fi
+            
+            if [[ ! "$COMMIT_MSG" =~ $REGEX ]]; then
+              echo "❌ Falha: A mensagem não segue o padrão '#NUM_ISSUE – MENSAGEM'."
+              HAS_ERROR=1
+              continue
+            fi
+            
+            ISSUE_NUM="${BASH_REMATCH[1]}"
+            echo "🔍 Verificando existência da Issue #$ISSUE_NUM no repositório ${{ github.repository }}..."
+            
+            HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" \
+              -H "Authorization: Bearer $GH_TOKEN" \
+              https://api.github.com/repos/${{ github.repository }}/issues/$ISSUE_NUM)
+              
+            if [ "$HTTP_STATUS" -eq 200 ]; then
+              echo "✅ Sucesso: Issue #$ISSUE_NUM confirmada!"
+            elif [ "$HTTP_STATUS" -eq 404 ]; then
+              echo "❌ Falha: Issue #$ISSUE_NUM não existe neste repositório!"
+              HAS_ERROR=1
+            else
+              echo "⚠️ Aviso: Erro na API do GitHub (HTTP $HTTP_STATUS). Passando validação por segurança."
+            fi
+          done <<< "$COMMITS"
+          
+          if [ $HAS_ERROR -eq 1 ]; then
+            echo "----------------------------------------"
+            echo "🚨 ERRO: Um ou mais commits são inválidos. O Pull Request foi bloqueado."
+            exit 1
+          else
+            echo "----------------------------------------"
+            echo "🎉 Todos os commits do PR estão válidos e seguem as regras de GCM!"
+            exit 0
+          fi
