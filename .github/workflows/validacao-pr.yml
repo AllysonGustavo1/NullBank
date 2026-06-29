@@ -28,11 +28,6 @@ jobs:
             echo "----------------------------------------"
             echo "Analisando: '$COMMIT_MSG'"
             
-            if [[ "$COMMIT_MSG" =~ ^Merge[[:space:]] ]]; then
-              echo "ℹ️ Commit de merge detectado. Ignorando validação."
-              continue
-            fi
-            
             if [[ ! "$COMMIT_MSG" =~ $REGEX ]]; then
               echo "❌ Falha: A mensagem não segue o padrão '#NUM_ISSUE – MENSAGEM'."
               HAS_ERROR=1
