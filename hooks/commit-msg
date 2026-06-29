@@ -21,6 +21,12 @@ fi
 # ==========================================
 # VERIFICAÇÃO 1: FORMATO DA MENSAGEM
 # ==========================================
+# Permite commits de merge automáticos (geralmente começam com 'Merge ')
+if [[ "$COMMIT_MSG" =~ ^Merge[[:space:]] ]]; then
+  echo "ℹ️ Commit de merge detectado. Ignorando validações de formato."
+  exit 0
+fi
+
 # Regex para garantir o padrão: #NUMERO - Mensagem qualquer (aceita hífen, en-dash ou em-dash)
 REGEX="^#([0-9]+) (-|–|—) .+$"
 
