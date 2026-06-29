@@ -134,3 +134,20 @@ curl -X PUT http://localhost:8080/banco/conta/rendimento \
 - Crédito
 - Débito
 - Transferência
+
+## Git Hooks (GCM - Tarefa 4)
+
+O repositório está configurado com validações locais de commit (Git Hooks) na pasta `hooks/`. 
+
+As regras de commit exigem que a mensagem do commit esteja no seguinte formato:
+`#NUM_ISSUE – MENSAGEM` (exemplo: `#33 – Correção da mensagem da tela principal`).
+O script valida o formato e também se o número da issue existe no repositório do GitHub.
+
+Para habilitar as validações locais em sua máquina, execute o seguinte comando na raiz do repositório:
+
+```bash
+git config core.hooksPath hooks
+```
+
+Isso fará com que o Git utilize os scripts da pasta `hooks/` ao realizar novos commits.
+
