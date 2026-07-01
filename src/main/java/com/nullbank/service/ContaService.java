@@ -149,7 +149,7 @@ public class ContaService {
         var destino = buscarContaObrigatoria(numeroDestino);
 
         origem.debitar(valor);
-        destino.creditar(valor+10);
+        destino.creditar(valor);
 
         if (destino instanceof ContaBonus cb) {
             int pontosGanhos = (int) (valor / 150);
