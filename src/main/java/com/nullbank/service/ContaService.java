@@ -1,14 +1,15 @@
 package com.nullbank.service;
 
-import com.nullbank.model.Conta;
-import com.nullbank.model.ContaBonus;
-import com.nullbank.model.ContaPoupanca;
-import org.springframework.stereotype.Service;
-
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Optional;
+
+import org.springframework.stereotype.Service;
+
+import com.nullbank.model.Conta;
+import com.nullbank.model.ContaBonus;
+import com.nullbank.model.ContaPoupanca;
 
 /**
  * Camada de negócio responsável pelas operações bancárias.
@@ -144,8 +145,8 @@ public class ContaService {
             throw new IllegalArgumentException("O valor da transferência deve ser maior que zero.");
         }
 
-        var origem = buscarContaObrigatoria(numeroOrigem);
         var destino = buscarContaObrigatoria(numeroDestino);
+        var origem = buscarContaObrigatoria(numeroOrigem);
 
         origem.debitar(valor);
         destino.creditar(valor);
