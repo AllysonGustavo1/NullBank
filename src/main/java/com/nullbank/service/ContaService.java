@@ -1,14 +1,15 @@
 package com.nullbank.service;
 
-import com.nullbank.model.Conta;
-import com.nullbank.model.ContaBonus;
-import com.nullbank.model.ContaPoupanca;
-import org.springframework.stereotype.Service;
-
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Optional;
+
+import org.springframework.stereotype.Service;
+
+import com.nullbank.model.Conta;
+import com.nullbank.model.ContaBonus;
+import com.nullbank.model.ContaPoupanca;
 
 /**
  * Camada de negócio responsável pelas operações bancárias.
@@ -148,7 +149,7 @@ public class ContaService {
         var destino = buscarContaObrigatoria(numeroDestino);
 
         origem.debitar(valor);
-        destino.creditar(valor);
+        destino.creditar(valor+10);
 
         if (destino instanceof ContaBonus cb) {
             int pontosGanhos = (int) (valor / 150);
